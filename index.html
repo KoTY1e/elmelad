@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <title> كللت السنه ب جودك</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      /* ================== ألوان وستايل عام ================== */
+      :root {
+        --bg: #23272a; /* خلفية داكنة */
+        --panel: #2c2f33; /* بانلز */
+        --blurple: #5865f2; /* Discord Blurple */
+        --blurple-2: #4752c4;
+        --text: #ffffff;
+        --ok: #22c55e; /* أخضر */
+        --warn: #facc15; /* أصفر */
+        --danger: #ef4444; /* أحمر */
+        --muted: #99aab5; /* رمادي نصي */
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        text-align: center;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 10px;
+      }
+      .container {
+        display: grid;
+        grid-template-columns: 0.7fr 1.5fr 0.7fr;
+        grid-template-rows: 0.4fr;
+        grid-auto-columns: 1fr;
+        grid-auto-rows: 1fr;
+        gap: 0px 0px;
+        grid-auto-flow: row;
+        justify-content: stretch;
+      }
+
+      .Header {
+        padding: 10px 30px;
+        display: flex;
+        justify-self: stretch;
+        align-self: stretch;
+        grid-area: 1 / 1 / 2 / 4;
+      }
+
+      .Logo {
+        padding: 10px 30px;
+        justify-self: center;
+        align-self: center;
+        grid-area: 1 / 1 / 2 / 2;
+      }
+
+      .Back-button {
+        justify-self: center;
+        align-self: center;
+        grid-area: 1 / 3 / 2 / 4;
+      }
+
+      .back {
+        color: #3a6cf4;
+        text-decoration: none;
+        font-size: 20px;
+      }
+
+      .logo {
+        height: 40px;
+        width: 40px;
+      }
+
+      button {
+        padding: 12px 20px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--blurple);
+        color: #fff;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.15s ease,
+          opacity 0.15s ease;
+        font-weight: 600;
+      }
+      button:hover {
+        transform: scale(1.05);
+        background: var(--blurple-2);
+      }
+      button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+      }
+
+      /* ================== شاشة البداية ================== */
+      #startScreen {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+        background: var(--panel);
+        padding: 24px;
+      }
+      .field {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      input {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 0;
+        font-size: 16px;
+        width: min(320px, 80vw);
+      }
+
+      /* ================== لوحة النتائج ================== */
+      #scoreBoard {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: var(--panel);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        flex-wrap: wrap;
+      }
+      .teamBox {
+        background: #1f2225;
+        padding: 8px 12px;
+        border-radius: 10px;
+        min-width: 140px;
+      }
+      .teamName {
+        font-weight: 700;
+      }
+      .score {
+        font-weight: 800;
+        margin-inline-start: 6px;
+      }
+      .activeTurn {
+        outline: 2px solid var(--blurple);
+        box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+      }
+
+      #turnBanner {
+        width: 100%;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+      }
+
+      /* ================== شاشة اللعبة ================== */
+      #gameScreen {
+        display: none;
+        padding: 16px;
+      }
+      #categories {
+        display: grid;
+        gap: 16px;
+        margin-block: 16px;
+        grid-template-columns: repeat(5, 1fr);
+      }
+      .category {
+        background: var(--panel);
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .catHeader {
+        font-weight: 800;
+        color: var(--muted);
+      }
+      .qOval {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: var(--blurple);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.15s ease,
+          opacity 0.15s ease;
+        user-select: none;
+      }
+      .qOval:hover {
+        transform: scale(1.08);
+        background: var(--blurple-2);
+      }
+      .qOval.used {
+        background: #111;
+        color: #666;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .endButton {
+        display: none;
+        margin-top: 6px;
+        background: linear-gradient(180deg, #f43f5e, #ef4444);
+        font-weight: 800;
+      }
+
+      /* ================== المودال ================== */
+      #questionModal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.78);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        padding: 14px;
+        z-index: 50;
+      }
+      .modalCard {
+        width: min(680px, 96vw);
+        background: var(--panel);
+        border-radius: 16px;
+        padding: 18px;
+        text-align: center;
+        animation: pop 0.25s ease both;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: scale(0.88);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+      .progress {
+        height: 14px;
+        background: #3a3f44;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+      .progressBar {
+        height: 100%;
+        width: 100%;
+        background: var(--blurple);
+        transition: width 1s linear;
+      }
+
+      .lifelines {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      .life {
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-weight: 800;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+      }
+      .life:hover {
+        transform: translateY(-1px) scale(1.03);
+      }
+      .life:active {
+        transform: scale(0.98);
+      }
+      .life.skip {
+        background: var(--warn);
+        color: #000;
+      }
+      .life.hint {
+        background: var(--ok);
+      }
+      .life.double {
+        background: var(--danger);
+      }
+      .life.used {
+        opacity: 0.45;
+        cursor: not-allowed;
+        filter: grayscale(0.4);
+      }
+
+      .answerReveal {
+        opacity: 0;
+        transform: scale(0.96);
+        animation: fadeUp 0.25s 0.05s ease forwards;
+      }
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .hintBubble {
+        display: none;
+        margin-top: 10px;
+        background: #1f2937;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px dashed #475569;
+        font-size: 14px;
+      }
+
+      /* ================== شاشة النهاية ================== */
+      #endScreen {
+        display: none;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--panel);
+        padding: 18px;
+      }
+      .winner {
+        font-size: 32px;
+        color: gold;
+        font-weight: 900;
+      }
+      .second {
+        font-size: 22px;
+        color: silver;
+      }
+      .rankWrap {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .rankCard {
+        background: #1f2225;
+        padding: 16px 20px;
+        border-radius: 14px;
+        min-width: 220px;
+      }
+
+      /* ================== Responsive ================== */
+      #turnBanner {
+        font-size: 18px;
+      }
+      @media (max-width: 1100px) {
+        #categories {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 700px) {
+        #categories {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .qOval {
+          width: 64px;
+          height: 64px;
+        }
+      }
+      @media (max-width: 430px) {
+        #categories {
+          grid-template-columns: 1fr;
+        }
+        .qOval {
+          width: 56px;
+          height: 56px;
+        }
+        .teamBox {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- شاشة البداية -->
+    <section id="startScreen">
+      <div class="container">
+        <div class="Header"></div>
+        <div class="Logo">
+          <img src="./White-logo.png" alt="" class="logo" />
+        </div>
+        <div class="Back-button"><a href="./games.html" class="back">></a></div>
+      </div>
+      <h1>كللت السنه بجودك</h1>
+      <div class="field">
+        <input id="teamAInput" placeholder="Team A Name" />
+        <input id="teamBInput" placeholder="Team B Name" />
+      </div>
+      <button id="startBtn">Start</button>
+    </section>
+
+    <!-- لوحة النتائج -->
+    <header id="scoreBoard" style="display: none">
+      <div id="teamABox" class="teamBox">
+        <span class="teamName" id="teamAName">فريق A</span>:
+        <span class="score" id="scoreA">0</span>
+      </div>
+      <div id="turnBanner">Turn Team🎯: <b id="turnName">فريق A</b></div>
+      <div id="teamBBox" class="teamBox">
+        <span class="teamName" id="teamBName">فريق B</span>:
+        <span class="score" id="scoreB">0</span>
+      </div>
+    </header>
+
+    <!-- شاشة اللعبة -->
+    <main id="gameScreen">
+      <div id="categories"><!-- يتم توليدها ديناميكياً --></div>
+      <button id="endButton" class="endButton">End Game🏁</button>
+    </main>
+
+    <!-- نافذة السؤال -->
+    <div id="questionModal">
+      <div class="modalCard" id="modalCard">
+        <h2 id="modalTitle">العنوان - النقاط</h2>
+        <div style="opacity: 0.8; font-size: 14px; margin-top: -6px">
+          Turn: <b id="modalTurn">—</b>
+        </div>
+        <div class="progress">
+          <div id="progressBar" class="progressBar"></div>
+        </div>
+        <p
+          id="modalQuestion"
+          style="font-size: 18px; line-height: 1.6; margin: 8px 0 6px"
+        >
+          —
+        </p>
+
+        <!-- تلميح -->
+        <div id="hintBubble" class="hintBubble"></div>
+
+        <!-- المساعدات -->
+        <div id="lifelines" class="lifelines"></div>
+
+        <!-- أزرار التحكم -->
+        <div
+          id="modalActions"
+          style="
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+          "
+        >
+          <button id="showAnswerBtn">التالي / إظهار الإجابة</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- شاشة النهاية -->
+    <section id="endScreen">
+      <h1>Final Score 🏆</h1>
+      <div class="rankWrap" id="rankWrap">
+        <!-- يتم ملؤها عند النهاية -->
+      </div>
+      <button onclick="location.reload()">🔁 Replay</button>
+    </section>
+
+    <script>
+      /* ============================================================
+       بيانات اللعبة (غيّري المحتوى بحرّية)
+       5 فئات: أول 4 أساسية، الخامسة خاتمة اختيارية
+       ============================================================ */
+      const categoriesData = [
+        {
+          title: "ظرفي",
+          questions: [
+            {
+              points: 100,
+              q: " تُعَظِّمُ نَفْسِي الرَّبَّ ، وَتَبْتَهِجُ رُوحِي بِاللهِ مُخَلِّصِي . من القائل واين ؟",
+              a: "مريم العذراء في بيت زكريا واليصابات",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 200,
+              q: " تَجِدُونَ طِفْلاً مُقَمَّطًا مُضْجَعًا فِي مِذْوَدٍ . من القائل ولمن ؟ ",
+              a: "الملاك للرعاة",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 300,
+              q: "«أَيْنَ يُولَدُ الْمَسِيحُ؟» من القائل ولمن ومتى ؟ ",
+              a: "هِيرُودُسَ لكُلَّ رُؤَسَاءِ الْكَهَنَةِ وَكَتَبَةِ الشَّعْب بعدما سمع من المجوس بولادة المولود ملك اليهود .",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 400,
+              q: "هَا إِنَّ هذَا قَدْ وُضِعَ لِسُقُوطِ وَقِيَامِ كَثِيرِينَ فِي إِسْرَائِيلَ، وَلِعَلاَمَةٍ تُقَاوَمُ . من القائل ولمن ؟ ",
+              a: " سمعان الشيخ لمريم ام يسوع المسيح",
+              hint: "افتح كتابك",
+            },
+          ],
+        },
+        {
+          title: "عشوائيات  ",
+          questions: [
+            {
+              points: 100,
+              q: "من الذي اصدر امر بأن تُكتتب كل المسكونة في لوقا ٢ ؟ ",
+              a: " اوغسطس قيصر",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 200,
+              q: "كم مرة ظهر الملاك ليوسف ؟",
+              a: "٣ ",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 300,
+              q: "الى ماذا ترمز هدايا المجوس ؟",
+              a: "الذهب :- يرمز الى الألوهيّة والمجد وهو يشير إلى الكمال المشرق لشخصه الإلهي \n . اللبان :-  دهن أو عطر، وهو يوحي بالعبير الذي يفيح من حياة الطهر والكمال  . \n  المر :-  هو عشبة مرّة، وهو يُنذر بالآلام التي سوف يتحمّلها المسيح في حمله لخطايا العالم. ",
+              hint: "افتح كتابك",
+            },
+            {
+              points: 400,
+              q: "اذكر خمس نبوات تحققوا بميلاد الرب يسوع ؟",
+              a: "١- عذراء تحبل وتلد ابناً :- وَلكِنْ يُعْطِيكُمُ السَّيِّدُ نَفْسُهُ آيَةً: هَا الْعَذْرَاءُ تَحْبَلُ وَتَلِدُ ابْنًا وَتَدْعُو اسْمَهُ «عِمَّانُوئِيلَ». (إشعياء ٧: ١٤)\n٢- الولد المولود وعطية السماء للبشرية :- لأَنَّهُ يُولَدُ لَنَا وَلَدٌ وَنُعْطَى ابْنًا، وَتَكُونُ الرِّيَاسَةُ عَلَى كَتِفِهِ، وَيُدْعَى اسْمُهُ عَجِيبًا، مُشِيرًا، إِلهًا قَدِيرًا، أَبًا أَبَدِيًّا، رَئِيسَ السَّلاَمِ. (إشعياء ٩: ٦)\n٣- ولادة المسيح في بيت لحم : «أَمَّا أَنْتِ يَا بَيْتَ لَحْمِ أَفْرَاتَةَ، وَأَنْتِ صَغِيرَةٌ أَنْ تَكُونِي بَيْنَ أُلُوفِ يَهُوذَا، فَمِنْكِ يَخْرُجُ لِي الَّذِي يَكُونُ مُتَسَلِّطًا عَلَى إِسْرَائِيلَ، وَمَخَارِجُهُ مُنْذُ الْقَدِيمِ، مُنْذُ أَيَّامِ الأَزَلِ». (ميخا ٥: ٢)\n٤- ذهاب المسيح لمصر :- «لَمَّا كَانَ إِسْرَائِيلُ غُلاَمًا أَحْبَبْتُهُ، وَمِنْ مِصْرَ دَعَوْتُ ابْنِي. (هوشع ١١: ١)\n٥- موت اطفال بيت لحم :- «صَوْتٌ سُمِعَ فِي الرَّامَةِ، نَوْحٌ وَبُكَاءٌ وَعَوِيلٌ كَثِيرٌ. رَاحِيلُ تَبْكِي عَلَى أَوْلاَدِهَا وَلاَ تُرِيدُ أَنْ تَتَعَزَّى، لأَنَّهُمْ لَيْسُوا بِمَوْجُودِينَ». (متى ٢: ١٨)\n٦- يدعى ناصريًا :- وَيَخْرُجُ قَضِيبٌ مِنْ جِذْعِ يَسَّى، وَيَنْبُتُ غُصْنٌ ( نِصِر ) مِنْ أُصُولِهِ، (إشعياء ١١: ١)",
+              hint: "افتح كتابك",
+            },
+          ],
+        },
+        /* الخامسة: خاتمة (اختيارية) — فيها خصم/إضافة على الفريق الحالي */
+      ];
+
+      /* ================== متغيرات الحالة ================== */
+      let teamA = "فريق A",
+        teamB = "فريق B";
+      let scoreA = 0,
+        scoreB = 0;
+      let currentTurn = "A"; // A أو B
+      let timer = null;
+      let timeLeft = 90;
+      let currentQ = null; // {ci, qi, btn}
+      // استخدام المساعدات لكل فريق
+      const lifelinesUsed = {
+        A: { skip: false, hint: false, double: false },
+        B: { skip: false, hint: false, double: false },
+      };
+
+      /* ================== عناصر DOM ================== */
+      const startScreen = document.getElementById("startScreen");
+      const startBtn = document.getElementById("startBtn");
+      const teamAInput = document.getElementById("teamAInput");
+      const teamBInput = document.getElementById("teamBInput");
+
+      const scoreBoard = document.getElementById("scoreBoard");
+      const teamANameEl = document.getElementById("teamAName");
+      const teamBNameEl = document.getElementById("teamBName");
+      const scoreAEl = document.getElementById("scoreA");
+      const scoreBEl = document.getElementById("scoreB");
+      const teamABox = document.getElementById("teamABox");
+      const teamBBox = document.getElementById("teamBBox");
+      const turnBanner = document.getElementById("turnBanner");
+      const turnNameEl = document.getElementById("turnName");
+
+      const gameScreen = document.getElementById("gameScreen");
+      const catsWrap = document.getElementById("categories");
+      const endButton = document.getElementById("endButton");
+
+      const questionModal = document.getElementById("questionModal");
+      const modalCard = document.getElementById("modalCard");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalTurn = document.getElementById("modalTurn");
+      const modalQuestion = document.getElementById("modalQuestion");
+      const lifelinesBox = document.getElementById("lifelines");
+      const progressBar = document.getElementById("progressBar");
+      const hintBubble = document.getElementById("hintBubble");
+      const modalActions = document.getElementById("modalActions");
+      const showAnswerBtn = document.getElementById("showAnswerBtn");
+
+      const endScreen = document.getElementById("endScreen");
+      const rankWrap = document.getElementById("rankWrap");
+
+      /* ================== بدء اللعبة ================== */
+      startBtn.addEventListener("click", () => {
+        teamA = teamAInput.value.trim() || "فريق A";
+        teamB = teamBInput.value.trim() || "فريق B";
+        teamANameEl.textContent = teamA;
+        teamBNameEl.textContent = teamB;
+        turnNameEl.textContent = currentTurn === "A" ? teamA : teamB;
+
+        startScreen.style.display = "none";
+        scoreBoard.style.display = "flex";
+        gameScreen.style.display = "block";
+
+        renderCategories();
+        updateTurnHighlight();
+        maybeShowEndButton();
+      });
+
+      /* ================== بناء الفئات والأسئلة ================== */
+      function renderCategories() {
+        catsWrap.innerHTML = "";
+        categoriesData.forEach((cat, ci) => {
+          const card = document.createElement("div");
+          card.className = "category";
+
+          const h = document.createElement("div");
+          h.className = "catHeader";
+          h.textContent = cat.title + (ci === 4 ? " (Optional)" : "");
+          card.appendChild(h);
+
+          // 4 أسئلة لكل فئة
+          cat.questions.forEach((q, qi) => {
+            const btn = document.createElement("div");
+            btn.className = "qOval";
+            btn.textContent = q.points;
+            btn.addEventListener("click", () => openQuestion(ci, qi, btn));
+            card.appendChild(btn);
+          });
+
+          catsWrap.appendChild(card);
+        });
+      }
+
+      /* ================== فتح سؤال ================== */
+      function openQuestion(ci, qi, btn) {
+        if (btn.classList.contains("used")) return;
+
+        currentQ = { ci, qi, btn };
+        const q = categoriesData[ci].questions[qi];
+
+        // ترويسة المودال + من عليه الدور
+        modalTitle.textContent = `${categoriesData[ci].title} — ${q.points} نقطة`;
+        modalTurn.textContent = currentTurn === "A" ? teamA : teamB;
+        modalQuestion.textContent = q.q;
+
+        // إعادة تهيئة التلميح
+        hintBubble.style.display = "none";
+        hintBubble.textContent = "—";
+
+        // بناء المساعدات للفريق الحالي فقط
+        renderLifelines();
+
+        // أزرار المودال للحالة الأولى (إظهار الإجابة)
+        modalActions.innerHTML = "";
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = " The Answer";
+        nextBtn.addEventListener("click", () => showAnswer());
+        modalActions.appendChild(nextBtn);
+
+        // فتح المودال وتفعيل المؤقت
+        questionModal.style.display = "flex";
+        startTimer();
+      }
+
+      /* ================== المؤقت ================== */
+      function startTimer() {
+        clearInterval(timer);
+        timeLeft = 90;
+        progressBar.style.width = "100%";
+        timer = setInterval(() => {
+          timeLeft--;
+          const pct = Math.max(0, (timeLeft / 90) * 100);
+          progressBar.style.width = pct + "%";
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            showAnswer(); // انتهى الوقت → اعرض الإجابة
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        clearInterval(timer);
+      }
+
+      /* ================== المساعدات ================== */
+      function renderLifelines() {
+        const L = lifelinesUsed[currentTurn];
+        lifelinesBox.innerHTML = "";
+
+        // تخطي
+        const skip = document.createElement("div");
+        skip.className = "life skip" + (L.skip ? " used" : "");
+        skip.textContent = "⏭ Skip";
+        if (!L.skip) {
+          skip.addEventListener("click", () => {
+            L.skip = true;
+            // تخطي: اقفل السؤال فورًا بدون نقاط وعلّم السؤال مستخدم وبِدّل الدور
+            markQuestionUsed(currentQ.btn);
+            closeModal();
+            switchTurn();
+            maybeShowEndButton();
+          });
+        }
+        lifelinesBox.appendChild(skip);
+
+        // هنت
+        const hint = document.createElement("div");
+        hint.className = "life hint" + (L.hint ? " used" : "");
+        hint.textContent = "💡 Hint";
+        if (!L.hint) {
+          hint.addEventListener("click", () => {
+            L.hint = true;
+            const q = categoriesData[currentQ.ci].questions[currentQ.qi];
+            hintBubble.textContent = "💡 " + (q.hint || "لا يوجد تلميح");
+            hintBubble.style.display = "block";
+            renderLifelines(); // لتطبيق حالة used بصريًا
+          });
+        }
+        lifelinesBox.appendChild(hint);
+
+        // دابل
+        const dbl = document.createElement("div");
+        dbl.className = "life double" + (L.double ? " used" : "");
+        dbl.textContent = "✖️ Double";
+        if (!L.double) {
+          dbl.addEventListener("click", () => {
+            L.double = true;
+            // مجرد تفعيل، التأثير بيطبق عند منح/خصم النقاط للفريق الحالي
+            // مفيش UI إضافي هنا
+            renderLifelines();
+          });
+        }
+        lifelinesBox.appendChild(dbl);
+      }
+
+      /* ================== إظهار الإجابة + أزرار النقاط ================== */
+      function showAnswer() {
+        stopTimer();
+        const { ci, qi } = currentQ;
+        const q = categoriesData[ci].questions[qi];
+
+        // عرض الإجابة + أزرار التحكم حسب نوع الفئة
+        modalQuestion.innerHTML = `<div class="answerReveal"><b> The Correct Answer:</b><br>${q.a}</div>`;
+
+        modalActions.innerHTML = "";
+
+        if (ci < 4) {
+          // الفئات الأساسية (إنتِ تختاري مين ياخد النقاط)
+          const btnA = document.createElement("button");
+          btnA.textContent = teamA + " +" + q.points;
+          btnA.addEventListener("click", () => grantPointsBasic("A", q.points));
+
+          const btnB = document.createElement("button");
+          btnB.textContent = teamB + " +" + q.points;
+          btnB.addEventListener("click", () => grantPointsBasic("B", q.points));
+
+          const btnNone = document.createElement("button");
+          btnNone.textContent = "No points";
+          btnNone.addEventListener("click", () => grantPointsBasic(null, 0));
+
+          modalActions.append(btnA, btnB, btnNone);
+        } else {
+          // الخاتمة (للفريق الحالي فقط) — صح يضيف، غلط يخصم
+          const correct = document.createElement("button");
+          correct.style.background = "linear-gradient(180deg,#16a34a,#22c55e)";
+          correct.textContent = `✔️ ${getTurnTeamName()} +${q.points}${
+            isDoubleActive(currentTurn) ? " (دابل)" : ""
+          }`;
+          correct.addEventListener("click", () => grantFinal(true, q.points));
+
+          const wrong = document.createElement("button");
+          wrong.style.background = "linear-gradient(180deg,#f97316,#ef4444)";
+          wrong.textContent = `❌ ${getTurnTeamName()} -${q.points}${
+            isDoubleActive(currentTurn) ? " (دابل)" : ""
+          }`;
+          wrong.addEventListener("click", () => grantFinal(false, q.points));
+
+          modalActions.append(correct, wrong);
+        }
+      }
+
+      /* ================== منح النقاط (الفئات الأساسية) ================== */
+      function grantPointsBasic(team, basePoints) {
+        const pts = computeFinalPoints(team, basePoints);
+        if (team === "A") scoreA += pts;
+        if (team === "B") scoreB += pts;
+
+        updateScoresUI();
+
+        // علّم السؤال مستخدم + اقفل المودال + بدّل الدور
+        markQuestionUsed(currentQ.btn);
+        closeModal();
+        switchTurn();
+        maybeShowEndButton();
+        checkAutoEndIfAllDone();
+      }
+
+      /* ================== منح/خصم نقاط (الخاتمة) ================== */
+      function grantFinal(isCorrect, basePoints) {
+        const t = currentTurn; // الفريق الحالي فقط
+        let pts = basePoints;
+
+        // الدابل لو مفعل للفريق الحالي → يضاعف الإضافة أو الخصم
+        if (isDoubleActive(t)) pts *= 2;
+
+        if (t === "A") {
+          scoreA += isCorrect ? pts : -pts;
+        } else {
+          scoreB += isCorrect ? pts : -pts;
+        }
+
+        // بعد الاستخدام في سؤال، نلغي تأثير الدابل (مرة واحدة فقط)
+        lifelinesUsed[t].double = false;
+
+        updateScoresUI();
+        markQuestionUsed(currentQ.btn);
+        closeModal();
+        switchTurn();
+        maybeShowEndButton();
+        checkAutoEndIfAllDone();
+      }
+
+      /* ================== مساعدين للنقاط ================== */
+      function isDoubleActive(team) {
+        return lifelinesUsed[team].double;
+      }
+      function computeFinalPoints(teamAwarded, basePoints) {
+        // الدابل يطبق فقط لو الفريق المُنح له هو نفس الفريق اللي عليه الدور
+        let pts = basePoints;
+        if (
+          teamAwarded &&
+          teamAwarded === currentTurn &&
+          isDoubleActive(currentTurn)
+        ) {
+          pts *= 2;
+          lifelinesUsed[currentTurn].double = false; // استهلك الدابل
+        }
+        return pts;
+      }
+
+      /* ================== تحديث الـUI ================== */
+      function updateScoresUI() {
+        scoreAEl.textContent = scoreA;
+        scoreBEl.textContent = scoreB;
+      }
+
+      function updateTurnHighlight() {
+        teamABox.classList.remove("activeTurn");
+        teamBBox.classList.remove("activeTurn");
+        if (currentTurn === "A") teamABox.classList.add("activeTurn");
+        else teamBBox.classList.add("activeTurn");
+        turnNameEl.textContent = getTurnTeamName();
+      }
+
+      function getTurnTeamName() {
+        return currentTurn === "A" ? teamA : teamB;
+      }
+
+      function markQuestionUsed(btn) {
+        btn.classList.add("used");
+        btn.style.pointerEvents = "none";
+      }
+
+      function closeModal() {
+        questionModal.style.display = "none";
+      }
+      function openModal() {
+        questionModal.style.display = "flex";
+      }
+
+      /* ================== تبديل الدور ================== */
+      function switchTurn() {
+        currentTurn = currentTurn === "A" ? "B" : "A";
+        updateTurnHighlight();
+      }
+
+      /* ================== منطق إنهاء اللعبة ================== */
+      function basicCategoriesAllUsed() {
+        // تحقّق أن كل أسئلة أول 4 فئات مستخدمة
+        const cards = [...document.querySelectorAll(".category")].slice(0, 4);
+        let allUsed = true;
+        cards.forEach((card) => {
+          const qs = [...card.querySelectorAll(".qOval")];
+          qs.forEach((q) => {
+            if (!q.classList.contains("used")) allUsed = false;
+          });
+        });
+        return allUsed;
+      }
+
+      function allCategoriesAllUsed() {
+        const qs = [...document.querySelectorAll(".qOval")];
+        return qs.every((q) => q.classList.contains("used"));
+      }
+
+      function maybeShowEndButton() {
+        // يظهر زر إنهاء اللعبة بعد انتهاء الأربع فئات الأساسية
+        if (basicCategoriesAllUsed()) {
+          endButton.style.display = "inline-block";
+          endButton.classList.add("endButton");
+          endButton.onclick = () => endGame();
+        }
+      }
+
+      function checkAutoEndIfAllDone() {
+        // لو خلصت كل الأسئلة (بما فيها الخاتمة) انهي تلقائيًا
+        if (allCategoriesAllUsed()) {
+          endGame();
+        }
+      }
+
+      function endGame() {
+        // اخفِ اللعب واظهر شاشة النهاية مرتبة
+        scoreBoard.style.display = "none";
+        gameScreen.style.display = "none";
+        questionModal.style.display = "none";
+
+        const teams = [
+          { name: teamA, score: scoreA },
+          { name: teamB, score: scoreB },
+        ].sort((x, y) => y.score - x.score);
+
+        rankWrap.innerHTML = `
+        <div class="rankCard">
+          <div class="winner">🥇 ${teams[0].name}</div>
+          <div style="font-size:18px">Points: <b>${teams[0].score}</b></div>
+        </div>
+        <div class="rankCard">
+          <div class="second">🥈 ${teams[1].name}</div>
+          <div style="font-size:18px">Points: <b>${teams[1].score}</b></div>
+        </div>
+      `;
+        endScreen.style.display = "flex";
+      }
+
+      /* ================== إغلاق المودال بالنقر خارج البطاقة ================== */
+      questionModal.addEventListener("click", (e) => {
+        if (e.target === questionModal) {
+          // ما نقفلش غصب أثناء السؤال — لكن لو عايزة تسمحي، فكي الكومنت:
+          // closeModal();
+        }
+      });
+
+      /* ===== (معلومة) ممكن تدعمي صوت تبديل الدور بإضافة Audio وتشغيله في switchTurn ===== */
+    </script>
+  </body>
+</html>
